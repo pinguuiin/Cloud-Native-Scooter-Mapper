@@ -74,14 +74,32 @@ variable "lambda_timeout" {
   default = 60
 }
 
+# Image tag used for all Lambda ECR images.
+variable "lambda_image_tag" {
+  type    = string
+  default = "latest"
+}
+
 # Lambda memory size in MB
 variable "lambda_memory" {
   type    = number
   default = 512
 }
 
-# Relative path to Lambda zip artifacts
-variable "lambda_artifacts_dir" {
-  type    = string
-  default = "../../dist"
+# Auto-cleanup after 3 days for raw GBFS snapshots in S3.
+variable "raw_retention_days" {
+  type    = number
+  default = 3
+}
+
+# Auto-cleanup after 7 days for aggregated Parquet snapshots in S3.
+variable "aggregated_retention_days" {
+  type    = number
+  default = 7
+}
+
+# Auto-cleanup after 7 days for Athena query results in S3.
+variable "athena_retention_days" {
+  type    = number
+  default = 7
 }

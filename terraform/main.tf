@@ -33,6 +33,4 @@ locals {
     Project = var.project_name
     Managed = "terraform"
   }
-
-  lambda_artifacts_dir = "${path.module}/${var.lambda_artifacts_dir}"
 }

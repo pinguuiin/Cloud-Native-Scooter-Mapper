@@ -4,16 +4,64 @@ resource "aws_s3_bucket" "raw" {
   tags   = local.common_tags
 }
 
+# Expire raw snapshots after retention period
+resource "aws_s3_bucket_lifecycle_configuration" "raw" {
+  bucket = aws_s3_bucket.raw.id
+
+  rule {
+    id     = "expire-raw"
+    status = "Enabled"
+
+    filter {}
+
+    expiration {
+      days = var.raw_retention_days
+    }
+  }
+}
+
 # Aggregated Parquet output bucket
 resource "aws_s3_bucket" "aggregated" {
   bucket = "${local.project}-aggregated-${local.name_suffix}"
   tags   = local.common_tags
 }
 
+# Expire aggregated snapshots after retention period
+resource "aws_s3_bucket_lifecycle_configuration" "aggregated" {
+  bucket = aws_s3_bucket.aggregated.id
+
+  rule {
+    id     = "expire-aggregated"
+    status = "Enabled"
+
+    filter {}
+
+    expiration {
+      days = var.aggregated_retention_days
+    }
+  }
+}
+
 # Athena query results bucket
 resource "aws_s3_bucket" "athena" {
   bucket = "${local.project}-athena-${local.name_suffix}"
   tags   = local.common_tags
+}
+
+# Expire Athena query results after retention period
+resource "aws_s3_bucket_lifecycle_configuration" "athena" {
+  bucket = aws_s3_bucket.athena.id
+
+  rule {
+    id     = "expire-athena-results"
+    status = "Enabled"
+
+    filter {}
+
+    expiration {
+      days = var.athena_retention_days
+    }
+  }
 }
 
 # Static frontend assets bucket

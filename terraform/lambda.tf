@@ -2,12 +2,8 @@
 resource "aws_lambda_function" "ingest" {
   function_name = "${local.project}-ingest-${local.name_suffix}"
   role          = aws_iam_role.ingest.arn
-  handler       = "handler.ingest"
-  runtime       = "python3.11"
-
-  filename         = "${local.lambda_artifacts_dir}/lambda_ingest.zip"
-  # Hash is used to detect changes and trigger updates
-  source_code_hash = filebase64sha256("${local.lambda_artifacts_dir}/lambda_ingest.zip")
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.ingest.repository_url}:${var.lambda_image_tag}"
 
   timeout     = var.lambda_timeout
   memory_size = var.lambda_memory
@@ -33,11 +29,8 @@ resource "aws_lambda_function" "ingest" {
 resource "aws_lambda_function" "transform" {
   function_name = "${local.project}-transform-${local.name_suffix}"
   role          = aws_iam_role.transform.arn
-  handler       = "handler.transform"
-  runtime       = "python3.11"
-
-  filename         = "${local.lambda_artifacts_dir}/lambda_transform.zip"
-  source_code_hash = filebase64sha256("${local.lambda_artifacts_dir}/lambda_transform.zip")
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.transform.repository_url}:${var.lambda_image_tag}"
 
   timeout     = var.lambda_timeout
   memory_size = 1024
@@ -65,11 +58,8 @@ resource "aws_lambda_function" "transform" {
 resource "aws_lambda_function" "api" {
   function_name = "${local.project}-api-${local.name_suffix}"
   role          = aws_iam_role.api.arn
-  handler       = "handler.api_handler"
-  runtime       = "python3.11"
-
-  filename         = "${local.lambda_artifacts_dir}/lambda_api.zip"
-  source_code_hash = filebase64sha256("${local.lambda_artifacts_dir}/lambda_api.zip")
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.api.repository_url}:${var.lambda_image_tag}"
 
   timeout     = var.lambda_timeout
   memory_size = var.lambda_memory

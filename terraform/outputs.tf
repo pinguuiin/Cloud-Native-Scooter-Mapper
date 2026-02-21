@@ -27,3 +27,23 @@ output "aggregated_bucket_name" {
 output "dynamodb_table_name" {
   value = aws_dynamodb_table.current_snapshot.name
 }
+
+# ECR repository URL for ingest image.
+output "ecr_ingest_repository_url" {
+  value = aws_ecr_repository.ingest.repository_url
+}
+
+# ECR repository URL for transform image.
+output "ecr_transform_repository_url" {
+  value = aws_ecr_repository.transform.repository_url
+}
+
+# ECR repository URL for api image.
+output "ecr_api_repository_url" {
+  value = aws_ecr_repository.api.repository_url
+}
+
+# AWS region currently targeted by Terraform.
+output "aws_region" {
+  value = var.region
+}
