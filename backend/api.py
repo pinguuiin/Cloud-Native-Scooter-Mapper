@@ -83,11 +83,14 @@ def _query_snapshot(table, resolution, min_count):
         KeyConditionExpression=Key("resolution").eq(resolution),
         FilterExpression=(
             Attr("snapshot_id").eq(snapshot_id)
-            & Attr("h3_index").ne("__meta__")
             & Attr("count").gte(min_count)
         ),
     )
-    return snapshot_id, response.get("Items", [])
+
+    items = [
+        item for item in response.get("Items", []) if item.get("h3_index") != "__meta__"
+    ]
+    return snapshot_id, items
 
 # Build GeoJSON features from DynamoDB items
 def _build_geojson_features(items, resolution):

@@ -1,4 +1,8 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
+const rawBaseUrl = import.meta.env.VITE_API_BASE_URL || '/api'
+const normalizedBaseUrl = rawBaseUrl.replace(/\/+$/, '')
+const API_BASE_URL = normalizedBaseUrl.endsWith('/api')
+  ? normalizedBaseUrl
+  : `${normalizedBaseUrl}/api`
 
 export async function fetchHeatmapData(resolution = 6, minCount = 1) {
   try {

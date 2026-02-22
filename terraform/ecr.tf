@@ -1,7 +1,8 @@
 # ECR repository for ingest Lambda image.
 resource "aws_ecr_repository" "ingest" {
   name                 = "${local.project}-ingest"
-  image_tag_mutability = "MUTABLE"
+  image_tag_mutability = "MUTABLE" # new image tags can overwrite old ones, for dev/test only
+  force_delete         = true
   tags                 = local.common_tags
 }
 
@@ -9,6 +10,7 @@ resource "aws_ecr_repository" "ingest" {
 resource "aws_ecr_repository" "transform" {
   name                 = "${local.project}-transform"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
   tags                 = local.common_tags
 }
 
@@ -16,6 +18,7 @@ resource "aws_ecr_repository" "transform" {
 resource "aws_ecr_repository" "api" {
   name                 = "${local.project}-api"
   image_tag_mutability = "MUTABLE"
+  force_delete         = true
   tags                 = local.common_tags
 }
 

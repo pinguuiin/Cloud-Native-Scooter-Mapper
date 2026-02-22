@@ -1,7 +1,8 @@
 # Raw GBFS snapshots bucket
 resource "aws_s3_bucket" "raw" {
-  bucket = "${local.project}-raw-${local.name_suffix}"
-  tags   = local.common_tags
+  bucket        = "${local.project}-raw-${local.name_suffix}"
+  force_destroy = true
+  tags          = local.common_tags
 }
 
 # Expire raw snapshots after retention period
@@ -22,8 +23,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "raw" {
 
 # Aggregated Parquet output bucket
 resource "aws_s3_bucket" "aggregated" {
-  bucket = "${local.project}-aggregated-${local.name_suffix}"
-  tags   = local.common_tags
+  bucket        = "${local.project}-aggregated-${local.name_suffix}"
+  force_destroy = true
+  tags          = local.common_tags
 }
 
 # Expire aggregated snapshots after retention period
@@ -44,8 +46,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "aggregated" {
 
 # Athena query results bucket
 resource "aws_s3_bucket" "athena" {
-  bucket = "${local.project}-athena-${local.name_suffix}"
-  tags   = local.common_tags
+  bucket        = "${local.project}-athena-${local.name_suffix}"
+  force_destroy = true
+  tags          = local.common_tags
 }
 
 # Expire Athena query results after retention period
@@ -66,8 +69,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "athena" {
 
 # Static frontend assets bucket
 resource "aws_s3_bucket" "frontend" {
-  bucket = "${local.project}-frontend-${local.name_suffix}"
-  tags   = local.common_tags
+  bucket        = "${local.project}-frontend-${local.name_suffix}"
+  force_destroy = true
+  tags          = local.common_tags
 }
 
 # Block public access on raw bucket

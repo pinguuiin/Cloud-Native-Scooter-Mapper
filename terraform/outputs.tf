@@ -13,6 +13,11 @@ output "cloudfront_domain" {
   value = aws_cloudfront_distribution.frontend.domain_name
 }
 
+# CloudFront distribution ID for cache invalidation commands
+output "cloudfront_distribution_id" {
+  value = aws_cloudfront_distribution.frontend.id
+}
+
 # S3 bucket name for raw snapshots
 output "raw_bucket_name" {
   value = aws_s3_bucket.raw.bucket
@@ -46,4 +51,9 @@ output "ecr_api_repository_url" {
 # AWS region currently targeted by Terraform.
 output "aws_region" {
   value = var.region
+}
+
+# EventBridge rule name for pause/resume commands.
+output "ingest_schedule_rule_name" {
+  value = aws_cloudwatch_event_rule.ingest_schedule.name
 }

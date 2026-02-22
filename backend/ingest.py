@@ -77,7 +77,7 @@ def _invoke_transform(transform_lambda_name, raw_bucket, key):
     lambda_client = boto3.client("lambda")
     lambda_client.invoke(
         FunctionName=transform_lambda_name,
-        InvocationType="Event",
+        InvocationType="Event", # asynchronous invocation
         Payload=json.dumps({"bucket": raw_bucket, "key": key}).encode("utf-8"),
     )
 
