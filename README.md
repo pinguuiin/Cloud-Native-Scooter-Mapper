@@ -1,10 +1,25 @@
 # Cloud Native Scooter Mapper
 
-This project is the cloud-native twin of the scooter mapper project the author built before.
+This project is the cloud-native twin of the [scooter heatmap](https://github.com/pinguuiin/Shared-City-Scooter-Mapper) project the author made before.
+
+On **AWS serverless** infrastructure (provisioned by **Terraform**), the program runs an **ELT** pipeline with **Lambda** images in **ECR**, triggered by **EventBridge**. Raw data is stored in **S3**, then aggregated into **DynamoDB** for low-latency real-time queries and into **Parquet (S3/Athena)** for historical analysis. **API Gateway** and **CloudFront** serve the application. **IAM roles** and scoped resource permissions enforce secure access. **CI workflow checks** and **API/aggregation tests** are included to ensure code quality and deployment reliability.
+
+## ✨ What's New
+
+| Original Scooter Mapper Project | AWS Serverless Evolution | Data Model / Design Impact |
+|---|---|---|
+| Docker Compose | Serverless AWS Infrastructure | From self-managed containers to managed event-driven services with minimum cost |
+| ETL pipeline | ELT pipeline | Raw source snapshots are stored as immutable JSON in S3 before transformation, improving loading speed and traceability |
+| Kafka topics for data transport | EventBridge scheduler + Lambda async invocation | From async, decoupled stream topic model to function-trigger async and loose-coupled model. With less infra to manage, Lambda can be faster at low traffic, but Kafka might perform better for high throughput as it has horizontal scalability with multi- partition/consumer option for ingest-transform process |
+| DuckDB tables | S3 raw snapshots -> DynamoDB current snapshot + S3 parquet history queried by Athena | Split data into NoSQL database for low-latency current-state key queries (DynamoDB) and columnar formatted parquet for fast historical analytics (S3/Athena). |
+| NA | IAM roles/policies + API Gateway-managed entrypoint | Assign terraform IAM user for it to deploy roles/resources, each Lambda assumes least-privilege IAM role, and invocation/image access is granted via restricted resource permissions |
+| Containerized frontend/backend | Frontend on S3+CloudFront, Lambda images in ECR | Deliver website with high performance and low latency; ECR supports large deployment sizes, allowing heavy dependencies |
+| NA | GitHub Actions CI for Ruff, ESLint, and Terraform format checks | Add schema/style quality checks at PR time, reducing integration drift across Python, frontend, and Terraform |
+
 
 ## AWS Serverless Deployment with Terraform
 
-## Security architecture
+## 🔐 Security architecture
 
 ```text
 terraform-admin (IAM User) + Access Key
@@ -29,7 +44,7 @@ API Gateway invokes Lambda via resource permission
 EventBridge invokes Lambda via resource permission
 ```
 
-## Setup
+## 🛠️ Setup
 
 ### Prerequisites
 - Terraform 1.6+
@@ -117,14 +132,14 @@ terraform destroy
 rm -rf frontend/dist frontend/node_modules
 ```
 
-## API Endpoints
+## 🌐 API Endpoints
 
 - /api/heatmap
 - /api/heatmap/geojson
 - /api/stats
 - /api/health
 
-## Tests
+## 🔎 Tests
 
 Run API consistency checks (health, stats, and cross-resolution total bike count):
 
@@ -142,6 +157,14 @@ For cloud deployment debugging, replace `output_var_name` with the variable to b
 ```bash
 terraform -chdir=terraform output -raw output_var_name
 ```
+
+## 🚀 Future Improvements
+
+- Add CloudWatch dashboards, structured logs, and alarms (Lambda errors, latency, and EventBridge failures).
+- Ingest additional GBFS providers/cities and standardize them into a unified model.
+- Add data quality checks (e.g. anomaly detection) in the pipeline.
+- Expand CI/CD from linting to automated image build/deploy and Terraform plan checks.
+- Improve cost controls with retention cleanup and lifecycle policies, etc.
 
 ---
 
