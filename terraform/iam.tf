@@ -40,18 +40,18 @@ resource "aws_iam_role_policy" "ingest" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["s3:PutObject"]
+        Effect   = "Allow"
+        Action   = ["s3:PutObject"]
         Resource = ["${aws_s3_bucket.raw.arn}/*"]
       },
       {
-        Effect = "Allow"
-        Action = ["lambda:InvokeFunction"]
+        Effect   = "Allow"
+        Action   = ["lambda:InvokeFunction"]
         Resource = [aws_lambda_function.transform.arn]
       },
       {
-        Effect = "Allow"
-        Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = "*"
       }
     ]
@@ -67,23 +67,23 @@ resource "aws_iam_role_policy" "transform" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["s3:GetObject"]
+        Effect   = "Allow"
+        Action   = ["s3:GetObject"]
         Resource = ["${aws_s3_bucket.raw.arn}/*"]
       },
       {
-        Effect = "Allow"
-        Action = ["s3:PutObject"]
+        Effect   = "Allow"
+        Action   = ["s3:PutObject"]
         Resource = ["${aws_s3_bucket.aggregated.arn}/*"]
       },
       {
-        Effect = "Allow"
-        Action = ["dynamodb:PutItem", "dynamodb:BatchWriteItem"]
+        Effect   = "Allow"
+        Action   = ["dynamodb:PutItem", "dynamodb:BatchWriteItem"]
         Resource = [aws_dynamodb_table.current_snapshot.arn]
       },
       {
-        Effect = "Allow"
-        Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = "*"
       }
     ]
@@ -99,13 +99,13 @@ resource "aws_iam_role_policy" "api" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:DescribeTable"]
+        Effect   = "Allow"
+        Action   = ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:DescribeTable"]
         Resource = [aws_dynamodb_table.current_snapshot.arn]
       },
       {
-        Effect = "Allow"
-        Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = "*"
       }
     ]

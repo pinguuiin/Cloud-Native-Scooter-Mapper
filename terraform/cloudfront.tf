@@ -6,7 +6,7 @@ resource "aws_cloudfront_origin_access_identity" "frontend" {
 # Bucket policy to grant OAI read access
 data "aws_iam_policy_document" "frontend_bucket" {
   statement {
-    actions = ["s3:GetObject"]
+    actions   = ["s3:GetObject"]
     resources = ["${aws_s3_bucket.frontend.arn}/*"]
 
     principals {

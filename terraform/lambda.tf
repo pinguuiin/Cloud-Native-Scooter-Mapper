@@ -10,14 +10,14 @@ resource "aws_lambda_function" "ingest" {
 
   environment {
     variables = {
-      GBFS_URL           = var.gbfs_url
-      RAW_BUCKET         = aws_s3_bucket.raw.bucket
-      RAW_PREFIX         = "raw"
-      CITY               = var.city
-      MIN_LATITUDE       = var.min_latitude
-      MAX_LATITUDE       = var.max_latitude
-      MIN_LONGITUDE      = var.min_longitude
-      MAX_LONGITUDE      = var.max_longitude
+      GBFS_URL              = var.gbfs_url
+      RAW_BUCKET            = aws_s3_bucket.raw.bucket
+      RAW_PREFIX            = "raw"
+      CITY                  = var.city
+      MIN_LATITUDE          = var.min_latitude
+      MAX_LATITUDE          = var.max_latitude
+      MIN_LONGITUDE         = var.min_longitude
+      MAX_LONGITUDE         = var.max_longitude
       TRANSFORM_LAMBDA_NAME = aws_lambda_function.transform.function_name
     }
   }
@@ -42,7 +42,7 @@ resource "aws_lambda_function" "transform" {
       AGG_PREFIX          = "aggregated"
       DDB_TABLE           = aws_dynamodb_table.current_snapshot.name
       CITY                = var.city
-      H3_RESOLUTIONS       = join(",", [for r in var.h3_resolutions : tostring(r)])
+      H3_RESOLUTIONS      = join(",", [for r in var.h3_resolutions : tostring(r)])
       MIN_LATITUDE        = var.min_latitude
       MAX_LATITUDE        = var.max_latitude
       MIN_LONGITUDE       = var.min_longitude
