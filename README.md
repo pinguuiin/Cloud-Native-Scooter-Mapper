@@ -76,9 +76,11 @@ terraform apply -target=aws_ecr_repository.ingest -target=aws_ecr_repository.tra
 
 ### 2) Build and Push Lambda Images to ECR
 
+Make sure Docker is running on the background and run the commands below:
+
 ```bash
-chmod +x scripts/build_and_push_ecr_images.sh
-./scripts/build_and_push_ecr_images.sh latest
+chmod +x scripts/build_and_push_to_ecr.sh
+./scripts/build_and_push_to_ecr.sh latest
 ```
 
 ### 3) Provision AWS Resources

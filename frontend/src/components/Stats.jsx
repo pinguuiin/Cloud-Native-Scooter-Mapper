@@ -3,6 +3,10 @@ function Stats({ data, error }) {
   if (!data || !data.properties) return null
 
   const { total_vehicles, hexagon_count, timestamp, resolution } = data.properties
+  const computedTotalVehicles = Array.isArray(data.features)
+    ? data.features.reduce((sum, feature) => sum + (feature?.properties?.count || 0), 0)
+    : 0
+  const displayTotalVehicles = total_vehicles ?? computedTotalVehicles
 
   const formatTime = (isoString) => {
     const date = new Date(isoString)
@@ -16,7 +20,7 @@ function Stats({ data, error }) {
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
           <span className="text-gray-400">Vehicles:</span>
-          <span className="font-bold">{total_vehicles?.toLocaleString() || 0}</span>
+          <span className="font-bold">{displayTotalVehicles.toLocaleString()}</span>
         </div>
         
         <div className="flex justify-between">
