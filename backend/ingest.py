@@ -1,9 +1,10 @@
-import boto3
 import json
 import os
 import urllib.request
 from datetime import datetime
 from zoneinfo import ZoneInfo
+
+import boto3
 
 # Fetch and validate required environment variables
 def _get_required_env():

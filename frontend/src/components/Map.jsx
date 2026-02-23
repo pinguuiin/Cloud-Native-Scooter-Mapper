@@ -25,7 +25,7 @@ function getColorForCount(count, maxCount) {
   return COLOR_SCALE[index]
 }
 
-function Map({ data, resolution, isLoading, alertThreshold, onAlertsUpdate }) {
+function Map({ data, isLoading, alertThreshold, onAlertsUpdate }) {
   const [viewState, setViewState] = useState({
     longitude: 6.0839,
     latitude: 50.7753,

@@ -1,12 +1,13 @@
-import boto3
-import h3
 import json
 import os
+from datetime import datetime, timedelta
+from decimal import Decimal
+from zoneinfo import ZoneInfo
+
+import boto3
+import h3
 import pyarrow as pa
 import pyarrow.parquet as pq
-from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo
-from decimal import Decimal
 
 # ========= Compatible functions for different H3 versions ========= #
 
@@ -110,7 +111,8 @@ def _aggregate_counts(bikes, resolutions):
     return counts_by_res
 
 # Write snapshot items into DynamoDB and return Parquet-ready records
-def _write_ddb_snapshot(ddb_table, resolutions, counts_by_res, snapshot_id, window_start, window_end):
+def _write_ddb_snapshot(ddb_table, resolutions, counts_by_res, snapshot_id,
+                        window_start, window_end):
     parquet_records = []
 
     for res in resolutions:

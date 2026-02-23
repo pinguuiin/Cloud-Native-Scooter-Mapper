@@ -1,8 +1,9 @@
-import boto3
-from boto3.dynamodb.conditions import Attr, Key
 import json
 import os
 from decimal import Decimal
+
+import boto3
+from boto3.dynamodb.conditions import Attr, Key
 
 # Extract method, path, and query parameters from the event
 def _get_request_parts(event):

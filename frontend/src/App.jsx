@@ -20,7 +20,7 @@ function App() {
   }, [])
 
   // Fetch heatmap data
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setIsLoading(true)
       setError(null)
@@ -32,12 +32,12 @@ function App() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [resolution])
 
   // Initial load
   useEffect(() => {
     loadData()
-  }, [resolution])
+  }, [loadData])
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -48,14 +48,13 @@ function App() {
     }, 30000) // 30 seconds
 
     return () => clearInterval(interval)
-  }, [autoRefresh, resolution])
+  }, [autoRefresh, loadData])
 
   return (
     <div className="relative w-full h-full">
       {/* Map */}
       <Map 
         data={heatmapData} 
-        resolution={resolution}
         isLoading={isLoading}
         alertThreshold={alertThreshold}
         onAlertsUpdate={handleAlertsUpdate}
