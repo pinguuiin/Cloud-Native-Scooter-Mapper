@@ -6,6 +6,7 @@ from zoneinfo import ZoneInfo
 
 import boto3
 
+
 # Fetch and validate required environment variables
 def _get_required_env():
     gbfs_url = os.getenv("GBFS_URL")
