@@ -238,7 +238,7 @@ def transform(event, context):
         ddb, resolutions, counts_by_res, snapshot_id, window_start, window_end
     )
 
-    # Group records by resolution and write to separate Parquet files, for more efficient querying later
+    # Group records by resolution and write to separate Parquet files
     records_by_resolution = _group_records_by_res(parquet_records)
 
     for res, records in records_by_resolution.items():

@@ -128,13 +128,13 @@ resource "aws_iam_role_policy" "compact" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["s3:ListBucket"]
+        Effect   = "Allow"
+        Action   = ["s3:ListBucket"]
         Resource = [aws_s3_bucket.aggregated.arn]
       },
       {
-        Effect = "Allow"
-        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
         Resource = ["${aws_s3_bucket.aggregated.arn}/*"]
       },
       {
