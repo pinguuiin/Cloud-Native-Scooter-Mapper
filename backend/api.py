@@ -73,8 +73,7 @@ def _handle_stats(table_name):
         },
     )
 
-
-# Query the latest snapshot items for a resolution
+# Query meta data for the latest snapshot id at a resolution and look up corresonding H3 items
 def _query_snapshot(table, resolution, min_count):
     meta = table.get_item(Key={"resolution": resolution, "h3_index": "__meta__"})
     snapshot_id = meta.get("Item", {}).get("snapshot_id")

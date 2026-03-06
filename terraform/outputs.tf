@@ -48,6 +48,11 @@ output "ecr_api_repository_url" {
   value = aws_ecr_repository.api.repository_url
 }
 
+# ECR repository URL for compact image.
+output "ecr_compact_repository_url" {
+  value = aws_ecr_repository.compact.repository_url
+}
+
 # AWS region currently targeted by Terraform.
 output "aws_region" {
   value = var.region
@@ -56,4 +61,9 @@ output "aws_region" {
 # EventBridge rule name for pause/resume commands.
 output "ingest_schedule_rule_name" {
   value = aws_cloudwatch_event_rule.ingest_schedule.name
+}
+
+# EventBridge rule name for compaction schedule.
+output "compact_schedule_rule_name" {
+  value = aws_cloudwatch_event_rule.compact_schedule.name
 }

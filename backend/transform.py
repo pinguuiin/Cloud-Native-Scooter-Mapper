@@ -49,8 +49,7 @@ def _get_processing_targets():
     if not ddb_table_name:
         raise ValueError("DDB_TABLE is required")
 
-    agg_prefix = os.getenv("AGG_PREFIX", "aggregated")
-    return agg_bucket, agg_prefix, ddb_table_name
+    return agg_bucket, ddb_table_name
 
 # Parse a delimited environment variable into a list
 def _env_list(name: str, cast_func=int, sep=","):
@@ -64,9 +63,21 @@ def _env_float(name: str, default: float) -> float:
     value = os.getenv(name)
     return float(value) if value is not None else default
 
+# Get local time based on timezone in environment
+def _get_local_time() -> datetime:
+    timezone = os.getenv("TIMEZONE")
+    if not timezone:
+        raise ValueError("TIMEZONE is required")
+    try:
+        ZoneInfo(timezone)
+    except ValueError as e:
+        raise ValueError(f"Invalid TIMEZONE '{timezone}'") from e
+
+    return datetime.now(ZoneInfo(timezone))
+
 # Build snapshot metadata and time window values
 def _build_snapshot_window(window_minutes: int):
-    now = datetime.now(ZoneInfo("Europe/Berlin"))
+    now = _get_local_time()
     snapshot_id = now.strftime("%Y%m%dT%H%M%S%z")
     window_start = (now - timedelta(minutes=window_minutes)).isoformat()
     window_end = now.isoformat()
@@ -165,12 +176,20 @@ def _write_ddb_snapshot(ddb_table, resolutions, counts_by_res, snapshot_id,
 
     return parquet_records
 
+def _group_records_by_res(parquet_records):
+    records_by_resolution = {}
+    for record in parquet_records:
+        res = int(record["resolution"])
+        records_by_resolution.setdefault(res, []).append(record)
+    return records_by_resolution
+
 # Build the S3 key for a Parquet snapshot
-def _build_parquet_key(agg_prefix, city, now, snapshot_id):
+def _build_parquet_key(city, now, resolution, snapshot_id):
     date_str = now.strftime("%Y-%m-%d")
+    hour = now.hour
     return (
-        f"{agg_prefix.rstrip('/')}/city={city}/date={date_str}/"
-        f"snapshot_id={snapshot_id}/aggregations.parquet"
+        f"aggregated/city={city}/date={date_str}/hour={hour}/resolution={resolution}/"
+        f"snapshot_id={snapshot_id}.parquet"
     )
 
 # Write aggregated records to S3 as Parquet
@@ -193,7 +212,7 @@ def _write_parquet_snapshot(s3_client, agg_bucket, key, parquet_records):
 # Transform a raw snapshot into DynamoDB and Parquet outputs
 def transform(event, context):
     raw_bucket, raw_key = _get_raw_location(event)
-    agg_bucket, agg_prefix, ddb_table_name = _get_processing_targets()
+    agg_bucket, ddb_table_name = _get_processing_targets()
 
     city = os.getenv("CITY", "default")
     resolutions = _env_list("H3_RESOLUTIONS", int) or [9, 8, 7, 6]
@@ -218,8 +237,13 @@ def transform(event, context):
     parquet_records = _write_ddb_snapshot(
         ddb, resolutions, counts_by_res, snapshot_id, window_start, window_end
     )
-    parquet_key = _build_parquet_key(agg_prefix, city, now, snapshot_id)
-    _write_parquet_snapshot(s3, agg_bucket, parquet_key, parquet_records)
+
+    # Group records by resolution and write to separate Parquet files, for more efficient querying later
+    records_by_resolution = _group_records_by_res(parquet_records)
+
+    for res, records in records_by_resolution.items():
+        parquet_key = _build_parquet_key(city, now, res, snapshot_id)
+        _write_parquet_snapshot(s3, agg_bucket, parquet_key, records)
 
     return {
         "statusCode": 200,

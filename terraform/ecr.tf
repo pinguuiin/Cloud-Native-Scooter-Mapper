@@ -22,6 +22,14 @@ resource "aws_ecr_repository" "api" {
   tags                 = local.common_tags
 }
 
+# ECR repository for compact Lambda image.
+resource "aws_ecr_repository" "compact" {
+  name                 = "${local.project}-compact"
+  image_tag_mutability = "MUTABLE"
+  force_delete         = true
+  tags                 = local.common_tags
+}
+
 # Allow Lambda service to pull ingest image.
 resource "aws_ecr_repository_policy" "ingest" {
   repository = aws_ecr_repository.ingest.name
@@ -69,6 +77,28 @@ resource "aws_ecr_repository_policy" "transform" {
 # Allow Lambda service to pull api image.
 resource "aws_ecr_repository_policy" "api" {
   repository = aws_ecr_repository.api.name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "LambdaPull"
+        Effect = "Allow"
+        Principal = {
+          Service = "lambda.amazonaws.com"
+        }
+        Action = [
+          "ecr:BatchGetImage",
+          "ecr:GetDownloadUrlForLayer",
+          "ecr:BatchCheckLayerAvailability"
+        ]
+      }
+    ]
+  })
+}
+
+# Allow Lambda service to pull compact image.
+resource "aws_ecr_repository_policy" "compact" {
+  repository = aws_ecr_repository.compact.name
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [

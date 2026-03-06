@@ -30,9 +30,11 @@ terraform-admin (IAM User) + Access Key
 aws_iam_role.ingest
 aws_iam_role.transform
 aws_iam_role.api
+aws_iam_role.compact
 aws_ecr_repository.ingest
 aws_ecr_repository.transform
 aws_ecr_repository.api
+aws_ecr_repository.compact
 aws_lambda_function.*
 aws_apigatewayv2_*
 aws_cloudwatch_event_*
@@ -71,7 +73,7 @@ cd terraform
 terraform init
 
 # ecr repo only needs to be created once unless running terraform destroy
-terraform apply -target=aws_ecr_repository.ingest -target=aws_ecr_repository.transform -target=aws_ecr_repository.api
+terraform apply -target=aws_ecr_repository.ingest -target=aws_ecr_repository.transform -target=aws_ecr_repository.api -target=aws_ecr_repository.compact
 ```
 
 ### 2) Build and Push Lambda Images to ECR

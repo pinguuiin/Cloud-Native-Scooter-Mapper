@@ -12,8 +12,8 @@ resource "aws_lambda_function" "ingest" {
     variables = {
       GBFS_URL              = var.gbfs_url
       RAW_BUCKET            = aws_s3_bucket.raw.bucket
-      RAW_PREFIX            = "raw"
       CITY                  = var.city
+      TIMEZONE              = var.timezone
       MIN_LATITUDE          = var.min_latitude
       MAX_LATITUDE          = var.max_latitude
       MIN_LONGITUDE         = var.min_longitude
@@ -39,15 +39,15 @@ resource "aws_lambda_function" "transform" {
     variables = {
       RAW_BUCKET          = aws_s3_bucket.raw.bucket
       AGG_BUCKET          = aws_s3_bucket.aggregated.bucket
-      AGG_PREFIX          = "aggregated"
       DDB_TABLE           = aws_dynamodb_table.current_snapshot.name
-      CITY                = var.city
       H3_RESOLUTIONS      = join(",", [for r in var.h3_resolutions : tostring(r)])
       MIN_LATITUDE        = var.min_latitude
       MAX_LATITUDE        = var.max_latitude
       MIN_LONGITUDE       = var.min_longitude
       MAX_LONGITUDE       = var.max_longitude
       WINDOW_SIZE_MINUTES = 5
+      CITY                = var.city
+      TIMEZONE            = var.timezone
     }
   }
 
@@ -69,6 +69,30 @@ resource "aws_lambda_function" "api" {
       DDB_TABLE             = aws_dynamodb_table.current_snapshot.name
       H3_DEFAULT_RESOLUTION = tostring(var.h3_default_resolution)
       CORS_ORIGINS          = join(",", var.cors_origins)
+    }
+  }
+
+  tags = local.common_tags
+}
+
+# Compact Lambda merges small Parquet files by date/hour/resolution
+resource "aws_lambda_function" "compact" {
+  function_name = "${local.project}-compact-${local.name_suffix}"
+  role          = aws_iam_role.compact.arn
+  package_type  = "Image"
+  image_uri     = "${aws_ecr_repository.compact.repository_url}:${var.lambda_image_tag}"
+
+  timeout     = var.lambda_timeout
+  memory_size = 1024
+
+  environment {
+    variables = {
+      AGG_BUCKET                  = aws_s3_bucket.aggregated.bucket
+      CITY                        = var.city
+      TIMEZONE                    = var.timezone
+      H3_RESOLUTIONS              = join(",", [for r in var.h3_resolutions : tostring(r)])
+      COMPACTION_LOOKBACK_HOURS   = tostring(var.compaction_lookback_hours)
+      DELETE_SOURCE_AFTER_COMPACT = "true"
     }
   }
 

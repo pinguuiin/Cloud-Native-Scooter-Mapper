@@ -24,6 +24,18 @@ def _env_float(name: str, default: float) -> float:
     value = os.getenv(name)
     return float(value) if value is not None else default
 
+# Get local time based on timezone in environment
+def _get_local_time() -> datetime:
+    timezone = os.getenv("TIMEZONE")
+    if not timezone:
+        raise ValueError("TIMEZONE is required")
+    try:
+        ZoneInfo(timezone)
+    except ValueError as e:
+        raise ValueError(f"Invalid TIMEZONE '{timezone}'") from e
+
+    return datetime.now(ZoneInfo(timezone))
+
 # Fetch JSON payload from a URL
 def _fetch_json(url: str) -> dict:
     try:
@@ -57,10 +69,10 @@ def _build_record(now, city, gbfs_url, bikes):
     }
 
 # Store a raw snapshot in S3 and return the object key
-def _store_snapshot(raw_bucket, raw_prefix, city, now, record):
+def _store_snapshot(raw_bucket, city, now, record):
     date_str = now.strftime("%Y-%m-%d")
     ts_str = now.strftime("%Y%m%dT%H%M%S%z")
-    key = f"{raw_prefix.rstrip('/')}/city={city}/date={date_str}/gbfs_{ts_str}.json"
+    key = f"raw/city={city}/date={date_str}/gbfs_{ts_str}.json"
 
     # boto3 creates a new client object to interact with S3
     s3 = boto3.client("s3")
@@ -86,7 +98,6 @@ def _invoke_transform(transform_lambda_name, raw_bucket, key):
 # Fetch GBFS data, store snapshot in S3, and invoke transforming
 def ingest(event, context):
     gbfs_url, raw_bucket = _get_required_env()
-    raw_prefix = os.getenv("RAW_PREFIX", "raw")
     city = os.getenv("CITY", "default")
 
     min_lat = _env_float("MIN_LATITUDE", -90.0)
@@ -94,7 +105,7 @@ def ingest(event, context):
     min_lon = _env_float("MIN_LONGITUDE", -180.0)
     max_lon = _env_float("MAX_LONGITUDE", 180.0)
 
-    now = datetime.now(ZoneInfo("Europe/Berlin"))
+    now = _get_local_time()
 
     # Fetch GBFS data and filter bikes within the bounding box
     payload = _fetch_json(gbfs_url)
@@ -103,7 +114,7 @@ def ingest(event, context):
 
     # Build a snapshot record and store it in S3
     record = _build_record(now, city, gbfs_url, filtered)
-    key = _store_snapshot(raw_bucket, raw_prefix, city, now, record)
+    key = _store_snapshot(raw_bucket, city, now, record)
 
     # Invoke the transforming Lambda asynchronously
     transform_lambda_name = os.getenv("TRANSFORM_LAMBDA_NAME")

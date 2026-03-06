@@ -16,6 +16,12 @@ variable "gbfs_url" {
   default = "https://gbfs.api.ridedott.com/public/v2/aachen/free_bike_status.json"
 }
 
+# Timezone used by all pipeline Lambdas
+variable "timezone" {
+  type    = string
+  default = "Europe/Berlin"
+}
+
 # City identifier used in S3 prefixes
 variable "city" {
   type    = string
@@ -59,6 +65,18 @@ variable "max_longitude" {
 variable "schedule_expression" {
   type    = string
   default = "rate(1 minute)"
+}
+
+# EventBridge schedule for Parquet compaction
+variable "compaction_schedule_expression" {
+  type    = string
+  default = "rate(1 hour)"
+}
+
+# Number of hours to look back from now when selecting target hour to compact
+variable "compaction_lookback_hours" {
+  type    = number
+  default = 1
 }
 
 # Allowed CORS origins for API responses

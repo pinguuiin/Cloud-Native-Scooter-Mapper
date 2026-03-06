@@ -31,6 +31,13 @@ resource "aws_iam_role" "api" {
   tags               = local.common_tags
 }
 
+# IAM role for compact Lambda
+resource "aws_iam_role" "compact" {
+  name               = "${local.project}-compact-${local.name_suffix}"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
+  tags               = local.common_tags
+}
+
 # IAM policy for ingest Lambda access
 resource "aws_iam_role_policy" "ingest" {
   name = "${local.project}-ingest-policy-${local.name_suffix}"
@@ -102,6 +109,33 @@ resource "aws_iam_role_policy" "api" {
         Effect   = "Allow"
         Action   = ["dynamodb:GetItem", "dynamodb:Query", "dynamodb:DescribeTable"]
         Resource = [aws_dynamodb_table.current_snapshot.arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+# IAM policy for compact Lambda access
+resource "aws_iam_role_policy" "compact" {
+  name = "${local.project}-compact-policy-${local.name_suffix}"
+  role = aws_iam_role.compact.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = ["s3:ListBucket"]
+        Resource = [aws_s3_bucket.aggregated.arn]
+      },
+      {
+        Effect = "Allow"
+        Action = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+        Resource = ["${aws_s3_bucket.aggregated.arn}/*"]
       },
       {
         Effect   = "Allow"
