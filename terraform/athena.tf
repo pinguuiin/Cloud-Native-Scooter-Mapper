@@ -11,7 +11,7 @@ resource "aws_athena_workgroup" "main" {
   tags = local.common_tags
 }
 
-# Athena database pointing at aggregated bucket
+# Athena database pointing at aggregated bucket. It's a metadata entry inside Glue Catalog
 resource "aws_athena_database" "main" {
   name   = "${local.project}_analytics"
   bucket = aws_s3_bucket.aggregated.bucket
@@ -96,28 +96,56 @@ resource "aws_glue_catalog_table" "historical_aggregations" {
   }
 }
 
-# SQL query for hourly hexagon averages over a day
+# SQL query template for hourly averaged number of scooters at a selected hexagon
 resource "aws_athena_named_query" "hourly_hexagon_avg" {
   name      = "hourly_hexagon_avg"
   database  = aws_athena_database.main.name
   workgroup = aws_athena_workgroup.main.name
   query     = <<-SQL
+  
+    -- Create minutely time series for the range of aggregated data
+    WITH bounds AS (
+      SELECT
+        MIN(date_parse(concat("date", ' ', lpad(CAST(hour AS varchar), 2, '0')), '%Y-%m-%d %H')) AS min_ts,
+        MAX(date_parse(concat("date", ' ', lpad(CAST(hour AS varchar), 2, '0')), '%Y-%m-%d %H')) AS max_ts
+      FROM historical_aggregations
+    ),
+    time_series AS (
+      SELECT ts
+      FROM bounds
+      CROSS JOIN UNNEST(sequence(min_ts, max_ts + INTERVAL '59' MINUTE, INTERVAL '1' MINUTE)) AS t(ts)
+    ),
+
+    -- Left join the time series with historical data to get a complete table with zero values
+    full_table AS (
+      SELECT
+        CAST(t.ts AS DATE) AS "date",
+        HOUR(t.ts) AS hour,
+        MINUTE(t.ts) AS minute,
+        COALESCE(a.h3_index, '881fa0a00dfffff') AS h3_index,
+        COALESCE(a.resolution, 8) AS resolution,
+        COALESCE(a.count, 0) AS scooter_count
+      FROM time_series t
+      LEFT JOIN historical_aggregations a
+        ON CAST(t.ts AS DATE) = CAST(a."date" AS DATE)
+        AND HOUR(t.ts) = a.hour
+        AND MINUTE(t.ts) = MINUTE(try_cast(a.last_updated AS timestamp))
+        AND a.h3_index = '881fa0a00dfffff'
+        AND a.resolution = 8
+    )
+
+    -- Aggregate the minutely data into hourly averages
     SELECT
-      city,
-      date,
+      "date",
       hour,
-      resolution,
       h3_index,
-      avg(count) AS avg_count,
-      min(count) AS min_count,
-      max(count) AS max_count,
+      resolution,
+      avg(scooter_count) AS avg_count,
+      min(scooter_count) AS min_count,
+      max(scooter_count) AS max_count,
       count(*) AS snapshots
-    FROM historical_aggregations
-    WHERE date = '2026-03-06'
-      AND city = 'aachen'
-      AND resolution = 8
-      AND h3_index = '8928308280fffff'
-    GROUP BY city, date, hour, resolution, h3_index
-    ORDER BY hour;
+    FROM full_table
+    GROUP BY "date", hour, h3_index, resolution
+    ORDER BY "date" ASC, hour ASC;
   SQL
 }
