@@ -62,7 +62,7 @@ variable "max_longitude" {
 }
 
 # EventBridge schedule for ingestion
-variable "schedule_expression" {
+variable "ingestion_schedule_expression" {
   type    = string
   default = "rate(1 minute)"
 }
@@ -120,4 +120,28 @@ variable "aggregated_retention_days" {
 variable "athena_retention_days" {
   type    = number
   default = 7
+}
+
+# Optional SNS topic ARN for CloudWatch alarm notifications.
+variable "alarm_notification_topic_arn" {
+  type    = string
+  default = null
+}
+
+# Alarm threshold for Lambda error count within the alarm period.
+variable "lambda_error_alarm_threshold" {
+  type    = number
+  default = 1
+}
+
+# Alarm threshold for Lambda p95 duration in milliseconds.
+variable "lambda_duration_p95_alarm_ms" {
+  type    = number
+  default = 5000
+}
+
+# Alarm threshold for EventBridge failed invocations in period.
+variable "eventbridge_failed_invocation_threshold" {
+  type    = number
+  default = 1
 }

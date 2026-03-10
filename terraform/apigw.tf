@@ -31,6 +31,25 @@ resource "aws_apigatewayv2_stage" "api" {
   api_id      = aws_apigatewayv2_api.api.id
   name        = "$default"
   auto_deploy = true # automatically deploy on route/integration changes
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.apigw_access.arn
+    format = jsonencode({
+      requestId          = "$context.requestId"
+      ip                 = "$context.identity.sourceIp"
+      requestTime        = "$context.requestTime"
+      httpMethod         = "$context.httpMethod"
+      routeKey           = "$context.routeKey"
+      path               = "$context.path"
+      status             = "$context.status"
+      protocol           = "$context.protocol"
+      responseLength     = "$context.responseLength"
+      integrationStatus  = "$context.integration.status"
+      integrationError   = "$context.integration.error"
+      integrationLatency = "$context.integration.latency"
+      responseLatency    = "$context.responseLatency"
+    })
+  }
 }
 
 # Allow API Gateway to invoke the API Lambda

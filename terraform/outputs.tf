@@ -67,3 +67,8 @@ output "ingest_schedule_rule_name" {
 output "compact_schedule_rule_name" {
   value = aws_cloudwatch_event_rule.compact_schedule.name
 }
+
+# CloudWatch dashboard name for pipeline observability.
+output "cloudwatch_dashboard_name" {
+  value = aws_cloudwatch_dashboard.pipeline.dashboard_name
+}

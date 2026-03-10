@@ -1,7 +1,7 @@
 # Schedule rule to trigger ingestion
 resource "aws_cloudwatch_event_rule" "ingest_schedule" {
   name                = "${local.project}-ingest-${local.name_suffix}"
-  schedule_expression = var.schedule_expression
+  schedule_expression = var.ingestion_schedule_expression
 }
 
 # Event target that invokes the ingest Lambda
