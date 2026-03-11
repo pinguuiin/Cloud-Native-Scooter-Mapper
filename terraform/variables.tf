@@ -122,8 +122,8 @@ variable "athena_retention_days" {
   default = 7
 }
 
-# Optional SNS topic ARN for CloudWatch alarm notifications.
-variable "alarm_notification_topic_arn" {
+# Optional email endpoint for CloudWatch alarm notifications.
+variable "alarm_email_endpoint" {
   type    = string
   default = null
 }

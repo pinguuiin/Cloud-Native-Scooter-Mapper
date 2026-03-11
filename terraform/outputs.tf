@@ -72,3 +72,13 @@ output "compact_schedule_rule_name" {
 output "cloudwatch_dashboard_name" {
   value = aws_cloudwatch_dashboard.pipeline.dashboard_name
 }
+
+# SNS topic ARN used by CloudWatch alarms.
+output "alarm_notification_topic_arn" {
+  value = aws_sns_topic.alarm_notifications.arn
+}
+
+# Email address configured for managed alarm subscription.
+output "alarm_email_subscription_endpoint" {
+  value = var.alarm_email_endpoint
+}

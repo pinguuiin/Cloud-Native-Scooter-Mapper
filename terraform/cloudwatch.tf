@@ -11,7 +11,7 @@ locals {
     compact = aws_cloudwatch_event_rule.compact_schedule.name
   }
 
-  alarm_actions = var.alarm_notification_topic_arn == null ? [] : [var.alarm_notification_topic_arn]
+  alarm_actions = var.alarm_email_endpoint == null ? [] : [aws_sns_topic.alarm_notifications.arn]
 }
 
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
@@ -97,7 +97,7 @@ resource "aws_cloudwatch_dashboard" "pipeline" {
         type   = "metric"
         x      = 0
         y      = 0
-        width  = 24
+        width  = 8
         height = 6
         properties = {
           title   = "Lambda Invocations"
@@ -107,18 +107,18 @@ resource "aws_cloudwatch_dashboard" "pipeline" {
           period  = 300
           region  = var.region
           metrics = [
-            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.ingest],
-            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.transform],
-            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.api],
-            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.compact]
+            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.ingest, { "label" : "ingest" }],
+            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.transform, { "label" : "transform" }],
+            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.api, { "label" : "api" }],
+            ["AWS/Lambda", "Invocations", "FunctionName", local.lambda_function_names.compact, { "label" : "compact" }]
           ]
         }
       },
       {
         type   = "metric"
-        x      = 0
-        y      = 12
-        width  = 24
+        x      = 8
+        y      = 0
+        width  = 8
         height = 6
         properties = {
           title   = "Lambda Errors"
@@ -128,18 +128,18 @@ resource "aws_cloudwatch_dashboard" "pipeline" {
           period  = 300
           region  = var.region
           metrics = [
-            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.ingest],
-            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.transform],
-            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.api],
-            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.compact]
+            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.ingest, { "label" : "ingest" }],
+            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.transform, { "label" : "transform" }],
+            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.api, { "label" : "api" }],
+            ["AWS/Lambda", "Errors", "FunctionName", local.lambda_function_names.compact, { "label" : "compact" }]
           ]
         }
       },
       {
         type   = "metric"
-        x      = 0
-        y      = 6
-        width  = 24
+        x      = 16
+        y      = 0
+        width  = 8
         height = 6
         properties = {
           title   = "Lambda Duration p95 (ms)"
@@ -149,27 +149,45 @@ resource "aws_cloudwatch_dashboard" "pipeline" {
           period  = 300
           region  = var.region
           metrics = [
-            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.ingest],
-            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.transform],
-            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.api],
-            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.compact]
+            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.ingest, { "label" : "ingest" }],
+            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.transform, { "label" : "transform" }],
+            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.api, { "label" : "api" }],
+            ["AWS/Lambda", "Duration", "FunctionName", local.lambda_function_names.compact, { "label" : "compact" }]
           ]
         }
       },
       {
         type   = "log"
         x      = 0
-        y      = 18
-        width  = 24
+        y      = 6
+        width  = 12
         height = 6
         properties = {
-          title  = "Recent Error Logs (Lambda + API Gateway Access)"
+          title  = "Recent API Lambda Error Logs"
           region = var.region
           view   = "table"
           query  = <<-QUERY
-            SOURCE '/aws/lambda/${local.lambda_function_names.ingest}', '/aws/lambda/${local.lambda_function_names.transform}', '/aws/lambda/${local.lambda_function_names.api}', '/aws/lambda/${local.lambda_function_names.compact}', '${aws_cloudwatch_log_group.apigw_access.name}'
+            SOURCE '/aws/lambda/${local.lambda_function_names.api}'
             | fields @timestamp, @log, @message
-            | filter @message like /ERROR|Error|Exception|\"status\":5/
+            | filter @message like /ERROR|Error|Exception/
+            | sort @timestamp desc
+            | limit 100
+          QUERY
+        }
+      },
+      {
+        type   = "log"
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title  = "Recent API Gateway Access Logs"
+          region = var.region
+          view   = "table"
+          query  = <<-QUERY
+            SOURCE '${aws_cloudwatch_log_group.apigw_access.name}'
+            | fields @timestamp, @message
             | sort @timestamp desc
             | limit 100
           QUERY

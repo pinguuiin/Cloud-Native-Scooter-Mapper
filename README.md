@@ -2,7 +2,9 @@
 
 This project is the cloud-native twin of the [scooter heatmap](https://github.com/pinguuiin/Shared-City-Scooter-Mapper) project the author made before.
 
-On **AWS serverless** infrastructure (provisioned by **Terraform**), the program runs an **ELT** pipeline with **Lambda** images in **ECR**, triggered by **EventBridge**. Raw data is stored in **S3**, then aggregated into **DynamoDB** for low-latency real-time queries and into **Parquet (S3/Athena)** for historical analysis. **API Gateway** and **CloudFront** serve the application. **IAM roles** and scoped resource permissions enforce secure access. **CI workflow checks** and **API/aggregation tests** are included to ensure code quality and deployment reliability.
+On **AWS serverless** infrastructure (provisioned by **Terraform**), the program runs an **ELT** pipeline with **Lambda** images in **ECR**, triggered by **EventBridge**. Raw data is stored in **S3**, then aggregated into **DynamoDB** for low-latency real-time queries and into **Parquet (S3/Athena)** for historical analysis. Aggregated snapshots are compacted into hourly Parquet files to improve read efficiency and reduce Athena scan overhead. **API Gateway** and **CloudFront** serve the application. **IAM roles** and scoped resource permissions enforce secure access.
+
+Observability is implemented through **CloudWatch dashboards** covering Lambda invocations, errors, duration, and API Gateway access logs, alongside **alarms** with optional email notifications. The project also includes **CI workflow checks** and **API/aggregation tests** to maintain code quality and deployment reliability.
 
 ## ✨ What's New
 
@@ -15,6 +17,7 @@ On **AWS serverless** infrastructure (provisioned by **Terraform**), the program
 | NA | IAM roles/policies + API Gateway-managed entrypoint | Assign terraform IAM user for it to deploy roles/resources, each Lambda assumes least-privilege IAM role, and invocation/image access is granted via restricted resource permissions |
 | Containerized frontend/backend | Frontend on S3+CloudFront, Lambda images in ECR | Deliver website with high performance and low latency; ECR supports large deployment sizes, allowing heavy dependencies |
 | NA | GitHub Actions CI for Ruff, ESLint, and Terraform format checks | Add schema/style quality checks at PR time, reducing integration drift across Python, frontend, and Terraform |
+| NA | CloudWatch dashboards + alarms (SNS email optional) | Add runtime visibility for `Lambda invocations/errors/p95 duration` and `API Gateway access logs`, with threshold-based `email alerting` for failures and latency |
 
 
 ## AWS Serverless Deployment with Terraform
@@ -65,6 +68,8 @@ aws configure
 ```
 
 then input the IAM username and access key following the prompts.
+
+If you want to receive alarm emails, set `alarm_email_endpoint` in `terraform.tfvars` to your email address. Leave it commented out to disable email notifications.
 
 ### 1) Create ECR Repositories
 
@@ -142,6 +147,10 @@ rm -rf frontend/dist frontend/node_modules
 - /api/heatmap/geojson
 - /api/stats
 - /api/health
+
+## 🧮 Athena Query Example
+
+An Athena named query example is provided in [terraform/athena.tf](terraform/athena.tf). The hourly_hexagon_avg query demonstrates how to analyze hourly averaged scooter availability over time for a selected H3 hexagon.
 
 ## 🔎 Tests
 
