@@ -4,7 +4,13 @@ This project is the cloud-native twin of the [scooter heatmap](https://github.co
 
 On **AWS serverless** infrastructure (provisioned by **Terraform**), the program runs an **ELT** pipeline with **Lambda** images in **ECR**, triggered by **EventBridge**. Raw data is stored in **S3**, then aggregated into **DynamoDB** for low-latency real-time queries and into **Parquet (S3/Athena)** for historical analysis. Aggregated snapshots are compacted into hourly Parquet files to improve read efficiency and reduce Athena scan overhead. **API Gateway** and **CloudFront** serve the application. **IAM roles** and scoped resource permissions enforce secure access.
 
-Observability is implemented through **CloudWatch dashboards** covering Lambda invocations, errors, duration, and API Gateway access logs, alongside **alarms** with optional email notifications. The project also includes **CI workflow checks** and **API/aggregation tests** to maintain code quality and deployment reliability.
+Observability is implemented through **CloudWatch dashboards** covering Lambda invocations, errors, duration, and API Gateway access logs, alongside **alarms** with optional email notifications. The project also includes **CI workflow checks** and **API/aggregation tests** to maintain code quality and deployment reliability.<br><br>
+
+<figure>
+  <img width="1900" height="751" alt="Screenshot 2026-03-11 122905" src="https://github.com/user-attachments/assets/44b9724f-8b03-4474-b7a8-db77e0d05607" >
+  <figcaption><em>Figure 1. CloudWatch dashboard overview</em></figcaption>
+</figure>
+
 
 ## ✨ What's New
 
