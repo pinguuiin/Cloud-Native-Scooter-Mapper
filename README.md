@@ -14,9 +14,9 @@ Urban shared mobility systems, such as e-scooters, face persistent challenges in
 This project addresses these challenges by building a cloud-native, end-to-end ELT pipeline that processes high-frequency GBFS (General Bikeshare Feed Specification) data and updates scooter availability on a map every 60 seconds. It enables operators to monitor distribution, detect shortages through real-time alerts, and make data-driven rebalancing decisions, while also providing users with up-to-date visibility of nearby scooters. With adjustable spatial resolution, the system can support a range of analytical and user-facing needs.
 
 
-## 🏗️ Program Architecture
+## 🏗️ Program Architecture + Workflow Orchestration
 
-On **AWS serverless** infrastructure (provisioned by **Terraform**), the program runs an **ELT** pipeline with **Lambda** images in **ECR**, triggered by **EventBridge**. Raw data is stored in **S3**, then aggregated into **DynamoDB** for low-latency real-time queries and into **Parquet (S3/Athena)** for historical analysis. Aggregated snapshots are compacted into hourly Parquet files to improve read efficiency and reduce Athena scan overhead. **API Gateway** and **CloudFront** serve the application. **IAM roles** and scoped resource permissions enforce secure access.
+On **AWS serverless** infrastructure (provisioned by **Terraform**), the program runs an **ELT** pipeline with **Lambda** images in **ECR**, triggered by **EventBridge**. On finishing, ingestion will automatically trigger transformation, with compaction being scheduled every hour. Raw data is stored in **S3**, then aggregated into **DynamoDB** for low-latency real-time queries and into **Parquet (S3/Athena)** for historical analysis. Aggregated snapshots are compacted into hourly Parquet files to improve read efficiency and reduce Athena scan overhead. **API Gateway** and **CloudFront** serve the application. **IAM roles** and scoped resource permissions enforce secure access.
 
 Observability is implemented through **CloudWatch dashboards** covering Lambda invocations, errors, duration, and API Gateway access logs, alongside **alarms** with optional email notifications. The project also includes **CI workflow checks** and **API/aggregation tests** to maintain code quality and deployment reliability.<br><br>
 
