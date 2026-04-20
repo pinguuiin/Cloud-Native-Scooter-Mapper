@@ -1,6 +1,20 @@
 # Cloud Native Scooter Mapper
 
-This project is the cloud-native twin of the [scooter heatmap](https://github.com/pinguuiin/Shared-City-Scooter-Mapper) project the author made before.
+This project is the cloud-native twin of the [scooter heatmap](https://github.com/pinguuiin/Shared-City-Scooter-Mapper) project the author made before. ⬅️Check out the github link for more information!
+
+<figure>
+  <img width="1920" height="868" alt="image" src="https://github.com/user-attachments/assets/7add13c4-22cd-4fb6-a56a-38a2285cb879" /><br>
+  <figcaption><em>Figure 1. Scooter heatmap distribution hosted on a server - the geospatial dashboard </em></figcaption>
+</figure>
+
+## 🛴 Project Description
+
+Urban shared mobility systems, such as e-scooters, face persistent challenges in balancing supply and demand across different areas. Vehicles are often unevenly distributed, leading to under-served zones where users cannot find scooters and over-saturated areas that reduce operational efficiency. These issues are compounded by the highly dynamic nature of mobility data, where availability changes minute by minute, making it difficult for traditional data systems to provide timely, actionable insights for both operators and users.
+
+This project addresses these challenges by building a cloud-native, end-to-end ELT pipeline that processes high-frequency GBFS (General Bikeshare Feed Specification) data and updates scooter availability on a map every 60 seconds. It enables operators to monitor distribution, detect shortages through real-time alerts, and make data-driven rebalancing decisions, while also providing users with up-to-date visibility of nearby scooters. With adjustable spatial resolution, the system can support a range of analytical and user-facing needs.
+
+
+## 🏗️ Program Architecture
 
 On **AWS serverless** infrastructure (provisioned by **Terraform**), the program runs an **ELT** pipeline with **Lambda** images in **ECR**, triggered by **EventBridge**. Raw data is stored in **S3**, then aggregated into **DynamoDB** for low-latency real-time queries and into **Parquet (S3/Athena)** for historical analysis. Aggregated snapshots are compacted into hourly Parquet files to improve read efficiency and reduce Athena scan overhead. **API Gateway** and **CloudFront** serve the application. **IAM roles** and scoped resource permissions enforce secure access.
 
@@ -8,7 +22,7 @@ Observability is implemented through **CloudWatch dashboards** covering Lambda i
 
 <figure>
   <img width="1900" height="751" alt="Screenshot 2026-03-11 122905" src="https://github.com/user-attachments/assets/44b9724f-8b03-4474-b7a8-db77e0d05607" >
-  <figcaption><em>Figure 1. CloudWatch dashboard overview</em></figcaption>
+  <figcaption><em>Figure 2. CloudWatch dashboard overview</em></figcaption>
 </figure>
 
 
@@ -65,6 +79,8 @@ EventBridge invokes Lambda via resource permission
 - Node.js + npm (frontend build)
 - curl + jq (for test only)
 
+Tips: if you don't have an AWS account, you can also run the local version of this project which have exactly the same web interface.
+
 ### 0) Configure local AWS Credentials through AWS CLI profile (one-time)
 
 Run the command below in your terminal:
@@ -109,7 +125,7 @@ terraform apply
 ./scripts/deploy_frontend.sh
 ```
 
-You can also check the CloudFront domain from Terraform outputs:
+Open the link in your terminal output or check the CloudFront domain from Terraform outputs:
 
 ```bash
 terraform -chdir=terraform output -raw cloudfront_domain
@@ -179,7 +195,7 @@ terraform -chdir=terraform output -raw output_var_name
 
 ## 🚀 Future Improvements
 
-- Add CloudWatch dashboards, structured logs, and alarms (Lambda errors, latency, and EventBridge failures) to increase observability.
+- ~~Add CloudWatch dashboards, structured logs, and alarms (Lambda errors, latency, and EventBridge failures) to increase observability.~~
 - Ingest additional GBFS providers/cities and standardize them into a unified model.
 - Add data quality checks (e.g. anomaly detection) in the pipeline.
 - Load data to Redshift for more regular analytical tasks.
